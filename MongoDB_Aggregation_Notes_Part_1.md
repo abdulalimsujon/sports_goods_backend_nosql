@@ -255,3 +255,131 @@ Common stages:
 -   `$lookup` → Join
 -   `$bucket` → Range grouping
 -   `$merge` / `$out` → Save result
+
+
+# `$lookup`
+
+## Definition
+
+`$lookup` দুটি collection-এর মধ্যে matching field ব্যবহার করে data **join** করে। এটি SQL-এর **LEFT JOIN**-এর মতো কাজ করে।
+
+**সহজভাবে:** এক collection-এর document-এর সাথে অন্য collection-এর related document যোগ করার জন্য `$lookup` ব্যবহার করা হয়।
+
+---
+
+## Referencing Example
+
+### Step 1: Create `users` Collection
+
+```javascript
+db.users.insertOne({
+  _id: 1,
+  name: "John"
+});
+```
+
+### Step 2: Create `orders` Collection
+
+```javascript
+db.orders.insertMany([
+  {
+    product: "Laptop",
+    userId: 1
+  },
+  {
+    product: "Mouse",
+    userId: 1
+  },
+  {
+    product: "Keyboard",
+    userId: 1
+  }
+]);
+```
+
+---
+
+## Relationship
+
+```text
+users._id
+    │
+    ▼
+orders.userId
+```
+
+এখানে `orders.userId` হলো `users._id`-এর **Reference**।
+
+---
+
+## `$lookup` Query
+
+```javascript
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "orders",
+      localField: "_id",
+      foreignField: "userId",
+      as: "orders"
+    }
+  }
+]);
+```
+
+---
+
+## Parameter Explanation
+
+| Parameter | Description |
+|-----------|-------------|
+| `from` | যে collection-এর সাথে join করবে |
+| `localField` | বর্তমান collection-এর matching field |
+| `foreignField` | অন্য collection-এর matching field |
+| `as` | Joined data যে field-এর নামে return হবে |
+
+---
+
+## Flow
+
+```text
+users Collection
+      │
+      │ localField (_id)
+      ▼
+orders Collection
+      │
+      │ foreignField (userId)
+      ▼
+$lookup
+      │
+      ▼
+orders[] (Joined Result)
+```
+
+---
+
+## Expected Output
+
+```javascript
+{
+  _id: 1,
+  name: "John",
+  orders: [
+    {
+      product: "Laptop",
+      userId: 1
+    },
+    {
+      product: "Mouse",
+      userId: 1
+    },
+    {
+      product: "Keyboard",
+      userId: 1
+    }
+  ]
+}
+```
+
+
