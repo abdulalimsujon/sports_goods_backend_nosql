@@ -194,6 +194,13 @@ Difference:
 
 For arrays.
 
+
+``` javascript
+{name:'John',results:[65,72,81,90]}
+{name:'Alice',results:[50,75,79]}
+{name:'Bob',results:[84,92,95]}
+```
+
 ``` js
 db.scores.find({
  results:{
