@@ -240,6 +240,22 @@ Updates existing field or creates a new field.
 ## Positional `$`
 
 ``` js
+{
+  "_id": 1,
+  "name": "Abdul Alim",
+  "education": [
+    {
+      "degree": "SSC",
+      "major": "Science"
+    },
+    {
+      "degree": "BSc",
+      "major": "EEE"
+    }
+  ]
+}
+
+
 db.users.updateOne(
 {
  "education.degree":"BSc"
