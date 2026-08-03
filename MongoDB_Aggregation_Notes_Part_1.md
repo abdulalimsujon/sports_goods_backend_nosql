@@ -381,5 +381,211 @@ orders[] (Joined Result)
   ]
 }
 ```
+# MongoDB `$facet` Operator
 
+## Definition
+
+The `$facet` stage allows you to run **multiple aggregation pipelines in parallel** on the **same set of input documents** and combines their results into a single document.
+
+> **One collection scan → Multiple independent results**
+
+It is commonly used for dashboards, reports, analytics, and search results where multiple summaries are needed from the same data.
+
+---
+
+# Syntax
+
+```javascript
+db.collection.aggregate([
+  {
+    $facet: {
+      pipeline1: [
+        // aggregation stages
+      ],
+      pipeline2: [
+        // aggregation stages
+      ],
+      pipeline3: [
+        // aggregation stages
+      ]
+    }
+  }
+])
+```
+
+- Each key inside `$facet` represents a separate aggregation pipeline.
+- Every pipeline receives the same input documents.
+- The result of each pipeline is returned as an array.
+
+---
+
+# Example Data
+
+```javascript
+db.users.insertMany([
+  { name: "John", age: 22, gender: "Male", salary: 40000 },
+  { name: "Alice", age: 25, gender: "Female", salary: 50000 },
+  { name: "Bob", age: 35, gender: "Male", salary: 70000 },
+  { name: "Sara", age: 42, gender: "Female", salary: 90000 },
+  { name: "David", age: 31, gender: "Male", salary: 65000 },
+  { name: "Emma", age: 28, gender: "Female", salary: 55000 }
+]);
+```
+
+---
+
+# Example 1: Multiple Reports
+
+```javascript
+db.users.aggregate([
+  {
+    $facet: {
+      totalUsers: [
+        {
+          $count: "count"
+        }
+      ],
+
+      maleUsers: [
+        {
+          $match: {
+            gender: "Male"
+          }
+        },
+        {
+          $count: "count"
+        }
+      ],
+
+      averageSalary: [
+        {
+          $group: {
+            _id: null,
+            averageSalary: {
+              $avg: "$salary"
+            }
+          }
+        }
+      ]
+    }
+  }
+]);
+```
+
+### Output
+
+```javascript
+[
+  {
+    totalUsers: [
+      { count: 6 }
+    ],
+    maleUsers: [
+      { count: 3 }
+    ],
+    averageSalary: [
+      {
+        _id: null,
+        averageSalary: 61666.67
+      }
+    ]
+  }
+]
+```
+
+---
+
+
+---
+
+# How `$facet` Works
+
+```
+             Collection
+                 │
+                 ▼
+            $facet Stage
+       ┌─────────┼─────────┐
+       ▼         ▼         ▼
+ Pipeline A  Pipeline B  Pipeline C
+       │         │         │
+       ▼         ▼         ▼
+ Result A   Result B   Result C
+       └─────────┼─────────┘
+                 ▼
+       Single Output Document
+```
+- MongoDB reads the input documents once.
+- Every pipeline processes the same input independently.
+- The final result combines all pipeline outputs into a single document.
+
+---
+
+# Common Stages Used Inside `$facet`
+
+- `$match`
+- `$group`
+- `$sort`
+- `$project`
+- `$limit`
+- `$skip`
+- `$lookup`
+- `$unwind`
+- `$bucket`
+- `$count`
+
+Each sub-pipeline behaves like a normal aggregation pipeline.
+
+---
+
+# When to Use `$facet`
+
+Use `$facet` when you need multiple results from the same collection, such as:
+
+- Dashboard statistics
+- Analytics reports
+- Search filters
+- Pagination with total document count
+- Multiple summaries in a single query
+
+---
+
+# `$group` vs `$facet`
+
+| `$group` | `$facet` |
+|----------|----------|
+| Groups documents into categories. | Runs multiple aggregation pipelines simultaneously. |
+| Produces one grouped result. | Produces multiple independent results. |
+| Uses accumulators like `$sum`, `$avg`, `$min`, `$max`. | Can contain `$group`, `$match`, `$sort`, `$lookup`, etc. |
+| One output structure. | One document containing multiple result arrays. |
+
+---
+
+# Advantages
+
+- Reads the collection only once.
+- Runs multiple aggregations in a single query.
+- Reduces the need for multiple database requests.
+- Ideal for dashboards and reporting.
+
+---
+
+# Interview Points
+
+### What is `$facet`?
+
+`$facet` is an aggregation stage that executes multiple independent aggregation pipelines on the same input documents and returns all results in a single document.
+
+### Why use `$facet`?
+
+- Improves performance by avoiding multiple collection scans.
+- Returns multiple summaries in a single aggregation query.
+- Simplifies dashboard and analytics queries.
+
+### Important Notes
+
+- Every pipeline receives the same input documents.
+- Each pipeline returns an array.
+- Pipelines do not share data with each other.
+- The final output is a single document containing all pipeline results.
 
