@@ -1,6 +1,6 @@
 # MongoDB Aggregation Notes (Progress)
 
-## Aggregation Pipeline
+# Aggregation Pipeline
 
 -   `aggregate([])` returns all documents (similar result to `find({})`,
     but aggregation runs a pipeline).
